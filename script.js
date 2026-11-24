@@ -91,3 +91,19 @@
  }
  mq.addEventListener('change',e=>{if(e.matches){document.documentElement.classList.remove('rich-motion');glow.remove();bar.remove();}});
 })();
+
+(() => {
+ const mq=matchMedia('(prefers-reduced-motion: reduce)');if(mq.matches)return;
+ document.documentElement.classList.add('text-motion');
+ document.querySelectorAll('h1,h2,h3').forEach(heading=>{
+ heading.setAttribute('aria-label',heading.textContent.trim());let index=0;
+ const walk=node=>{[...node.childNodes].forEach(child=>{if(child.nodeType===3){const frag=document.createDocumentFragment();child.textContent.split(/(\s+)/).forEach(word=>{if(!word.trim()){frag.append(document.createTextNode(word));return;}const mask=document.createElement('span');mask.className='word-mask';mask.setAttribute('aria-hidden','true');const inner=document.createElement('span');inner.className='word-rise';inner.style.setProperty('--word-delay',`${Math.min(index++,7)*90}ms`);inner.textContent=word;mask.append(inner);frag.append(mask);});child.replaceWith(frag);}else if(child.nodeType===1)walk(child);});};walk(heading);
+ });
+ document.querySelectorAll('.intro,.about-text,.project-body>p,.timeline-row p,.credential>p,.team-project p,.education-list p,.contact-row>p').forEach(p=>p.classList.add('text-paragraph'));
+ const nodes=document.querySelectorAll('h1,h2,h3,.text-paragraph,.eyebrow');
+ const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+ const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(!entry.isIntersecting)return;const el=entry.target;el.classList.add('text-shown');observer.unobserve(el);
+ if(el.classList.contains('eyebrow')&&el.children.length===0){const original=el.textContent;let tick=0;const timer=setInterval(()=>{tick++;if(mq.matches||tick>12){el.textContent=original;clearInterval(timer);return;}el.textContent=[...original].map((c,i)=>c===' '?c:i<tick*original.length/12?c:chars[(i+tick*3)%chars.length]).join('');},28);}
+ }),{threshold:.15});nodes.forEach(el=>observer.observe(el));
+ mq.addEventListener('change',e=>{if(e.matches){document.documentElement.classList.remove('text-motion');observer.disconnect();}});
+})();
